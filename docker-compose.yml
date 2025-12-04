@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  trektrace-backend:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_DATABASE=${MONGODB_DATABASE}
+      - JWT_SECRET=${JWT_SECRET}
+      - APPWRITE_PROJECT_ID=${APPWRITE_PROJECT_ID}
+      - APPWRITE_API_KEY=${APPWRITE_API_KEY}
+      - APPWRITE_ENDPOINT=${APPWRITE_ENDPOINT}
+    restart: unless-stopped
+    container_name: trektrace-api
