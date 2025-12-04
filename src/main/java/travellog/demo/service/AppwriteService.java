@@ -16,11 +16,11 @@ import org.springframework.http.HttpEntity;
 @Service
 public class AppwriteService {
     
-    @Value("${APPWRITE_PROJECT_ID}")
+    @Value("${appwrite.projectId}")
     private String projectId;
-    @Value("${APPWRITE_API_KEY}")
+    @Value("${appwrite.apiKey}")
     private String apiKey;
-    @Value("${APPWRITE_ENDPOINT:http://localhost/v1}")
+    @Value("${appwrite.endpoint:http://localhost/v1}")
     private String endpoint;
 
       // Uploads file, returns JSON string response (Appwrite returns file object)

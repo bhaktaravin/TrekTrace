@@ -5,19 +5,21 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import travellog.demo.auth.JwtUtil;
 import travellog.demo.models.User;
 import travellog.demo.repositories.UserRepository;
 
 @RestController
 @RequestMapping("/auth")
+@Slf4j
 public class AuthController {
 
     @Autowired
@@ -26,7 +28,8 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
       @PostMapping("/register")
   public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
@@ -46,11 +49,19 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+    log.info("Login attempt for email: {}", req.getEmail());
     var maybe = userRepository.findByEmail(req.getEmail());
-    if (maybe.isEmpty()) return ResponseEntity.status(401).body(Map.of("error","Invalid creds"));
+    if (maybe.isEmpty()) {
+      log.warn("User not found: {}", req.getEmail());
+      return ResponseEntity.status(401).body(Map.of("error","Invalid credentials"));
+    }
     User u = maybe.get();
-    if (!passwordEncoder.matches(req.getPassword(), u.getPasswordHash()))
-      return ResponseEntity.status(401).body(Map.of("error","Invalid creds"));
+    log.info("User found, checking password...");
+    if (!passwordEncoder.matches(req.getPassword(), u.getPasswordHash())) {
+      log.warn("Password mismatch for user: {}", req.getEmail());
+      return ResponseEntity.status(401).body(Map.of("error","Invalid credentials"));
+    }
+    log.info("Login successful for user: {}", req.getEmail());
     String token = jwtUtil.generateToken(u.getId());
     return ResponseEntity.ok(Map.of("token", token));
   }
