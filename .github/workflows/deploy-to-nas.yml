@@ -25,7 +25,7 @@ jobs:
       with:
         host: ${{ secrets.NAS_HOST }}
         username: ${{ secrets.NAS_USERNAME }}
-        password: ${{ secrets.NAS_PASSWORD }}
+        key: ${{ secrets.NAS_SSH_KEY }}
         source: "target/trektrace-*.jar,Dockerfile,docker-compose.yml,.env"
         target: "/volume1/docker/demo"
         
@@ -34,7 +34,7 @@ jobs:
       with:
         host: ${{ secrets.NAS_HOST }}
         username: ${{ secrets.NAS_USERNAME }}
-        password: ${{ secrets.NAS_PASSWORD }}
+        key: ${{ secrets.NAS_SSH_KEY }}
         script: |
           cd /volume1/docker/demo
           docker-compose down
