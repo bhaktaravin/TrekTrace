@@ -22,7 +22,7 @@ public class Photo {
     private String id;
     private String tripId;
     private String userId; 
-    private String appwriteFileId;
+    // Removed appwriteFileId (Appwrite dependency)
     private String fileName;
     private String url;
     private long createdAt;

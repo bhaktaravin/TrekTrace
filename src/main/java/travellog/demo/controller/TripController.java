@@ -17,14 +17,12 @@ import travellog.demo.models.Photo;
 import travellog.demo.models.Trip;
 import travellog.demo.repositories.PhotoRepository;
 import travellog.demo.repositories.TripRepository;
-import travellog.demo.service.AppwriteService;
 
 @RestController
 @RequestMapping("/trips")
 public class TripController {
       @Autowired TripRepository tripRepo;
   @Autowired PhotoRepository photoRepo;
-  @Autowired AppwriteService appwriteService;
 
   // Create trip with optional photos
   @PostMapping(consumes = {"multipart/form-data"})
@@ -53,16 +51,13 @@ public class TripController {
     List<String> fileIds = new ArrayList<>();
     if (photos != null) {
       for (MultipartFile file : photos) {
-        String appwriteResp = appwriteService.uploadFile(file);
-        // parse JSON to extract $id or the file ID. For brevity, we save whole response or extract id.
-        // In production, use Jackson to parse and extract "$id" or "id"
-        // Example hacky extraction (assumes JSON contains "$id":"..."):
-        String id = extractIdFromJson(appwriteResp);
-        fileIds.add(id);
+        // TODO: Save file to local storage or another service, then get the URL/path
+        String url = saveFileAndGetUrl(file); // Implement this method
+        fileIds.add(url);
 
         Photo p = Photo.builder()
-          .appwriteFileId(id)
           .fileName(file.getOriginalFilename())
+          .url(url)
           .userId(userId)
           .createdAt(Instant.now().toEpochMilli())
           .build();
@@ -70,7 +65,7 @@ public class TripController {
       }
     }
 
-    trip.setPhotoIds(fileIds);
+    trip.setPhotoUrls(fileIds);
     tripRepo.save(trip);
     return ResponseEntity.ok(trip);
   }
@@ -111,15 +106,22 @@ public class TripController {
     public void setLocation(Trip.Location location) { this.location = location; }
   }
 
-  private String extractIdFromJson(String json) {
-    // replace with proper JSON parsing (Jackson). Quick regex:
+
+  // Implement this to save file and return URL or path
+  private String saveFileAndGetUrl(MultipartFile file) {
+    // Example: save to local folder and return path
+    // In production, use a proper storage service
     try {
-      var m = java.util.regex.Pattern.compile("\"\\$id\"\\s*:\\s*\"([^\"]+)\"").matcher(json);
-      if (m.find()) return m.group(1);
-      m = java.util.regex.Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"").matcher(json);
-      if (m.find()) return m.group(1);
-    } catch (Exception ignored) {}
-    return json; // fallback
+      String uploadsDir = "uploads/";
+      java.io.File dir = new java.io.File(uploadsDir);
+      if (!dir.exists()) dir.mkdirs();
+      String filePath = uploadsDir + System.currentTimeMillis() + "-" + file.getOriginalFilename();
+      java.io.File dest = new java.io.File(filePath);
+      file.transferTo(dest);
+      return filePath;
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to save file", e);
+    }
   }
 
 }

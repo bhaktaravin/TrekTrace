@@ -21,7 +21,7 @@ public class Trip {
   private List<String> people;
   private String notes;
   private Location location;
-  private List<String> photoIds; // Appwrite file IDs or URLs saved here
+  private List<String> photoUrls; // URLs or local file paths saved here
   private Long createdAt;
 
   @Data
